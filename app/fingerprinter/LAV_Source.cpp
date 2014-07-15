@@ -70,9 +70,9 @@ public:
         , eof(false)
         , overflowSize(0)
     {
-        outBuffer = (uint8_t*)av_malloc(sizeof(uint8_t)*AVCODEC_MAX_AUDIO_FRAME_SIZE*4);
-        outBufferSize = sizeof(uint8_t)*AVCODEC_MAX_AUDIO_FRAME_SIZE*4;
-        overflow = (uint8_t*)av_malloc(sizeof(uint8_t)*AVCODEC_MAX_AUDIO_FRAME_SIZE*4);
+        outBuffer = (uint8_t*)av_malloc(sizeof(uint8_t)*192000*4);
+        outBufferSize = sizeof(uint8_t)*192000*4;
+        overflow = (uint8_t*)av_malloc(sizeof(uint8_t)*192000*4);
     }
 
     ~LAV_SourcePrivate()
