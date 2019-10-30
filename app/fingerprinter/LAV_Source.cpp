@@ -405,7 +405,7 @@ void LAV_Source::getInfo(int& lengthSecs, int& samplerate, int& bitrate, int& nc
 
 void LAV_Source::release()
 {
-    if ( d->inCodecContext && d->inCodecContext->codec_id != CODEC_ID_NONE )
+    if ( d->inCodecContext && d->inCodecContext->codec_id != AV_CODEC_ID_NONE )
     {
         avcodec_close(d->inCodecContext);
     }
