@@ -162,8 +162,8 @@ uint8_t * LAV_SourcePrivate::decodeOneFrame(int &dataSize, int &channels, int& n
 
         if (frameFinished) {
             dataSize = av_samples_get_buffer_size(NULL, inCodecContext->channels,
-                                                       decodedFrame->nb_samples,
-                                                       inCodecContext->sample_fmt, 1);
+                                                  decodedFrame->nb_samples,
+                                                  inCodecContext->sample_fmt, 1);
             channels = inCodecContext->channels;
 
             // As necessary, convert to outSampleFmt and outMaxChannels
@@ -171,7 +171,7 @@ uint8_t * LAV_SourcePrivate::decodeOneFrame(int &dataSize, int &channels, int& n
             if (channels > outMaxChannels)
                 channels = outMaxChannels;
             if (!resampleContext &&
-                (inCodecContext->sample_fmt != outSampleFmt || inCodecContext->channels != channels))
+                    (inCodecContext->sample_fmt != outSampleFmt || inCodecContext->channels != channels))
             {
                 int64_t inChannelLayout =
                     (inCodecContext->channel_layout && inCodecContext->channels == av_get_channel_layout_nb_channels(inCodecContext->channel_layout)) ?
@@ -179,9 +179,9 @@ uint8_t * LAV_SourcePrivate::decodeOneFrame(int &dataSize, int &channels, int& n
                 int64_t outChannelLayout = av_get_default_channel_layout(channels);
 
                 resampleContext = swr_alloc_set_opts(NULL,
-                                                 outChannelLayout, outSampleFmt, decodedFrame->sample_rate,
-                                                 inChannelLayout, inCodecContext->sample_fmt, inCodecContext->sample_rate,
-                                                 0, NULL);
+                                                     outChannelLayout, outSampleFmt, decodedFrame->sample_rate,
+                                                     inChannelLayout, inCodecContext->sample_fmt, inCodecContext->sample_rate,
+                                                     0, NULL);
                 if (!resampleContext || swr_init(resampleContext) < 0)
                 {
                     cerr << "Cannot create sample rate converter from "
@@ -218,7 +218,7 @@ uint8_t * LAV_SourcePrivate::decodeOneFrame(int &dataSize, int &channels, int& n
             if (channels > outMaxChannels)
                 channels = outMaxChannels;
             if (!resampleContext &&
-                (inCodecContext->sample_fmt != outSampleFmt || inCodecContext->channels != channels))
+                    (inCodecContext->sample_fmt != outSampleFmt || inCodecContext->channels != channels))
             {
                 int64_t inChannelLayout =
                     (inCodecContext->channel_layout && inCodecContext->channels == av_get_channel_layout_nb_channels(inCodecContext->channel_layout)) ?
@@ -243,7 +243,7 @@ uint8_t * LAV_SourcePrivate::decodeOneFrame(int &dataSize, int &channels, int& n
                 // If both the input and output formats are s16 or u8, use s16
                 // as the internal sample format
                 if (av_get_bytes_per_sample(inCodecContext->sample_fmt) <= 2 &&
-                    av_get_bytes_per_sample(outSampleFmt) <= 2)
+                        av_get_bytes_per_sample(outSampleFmt) <= 2)
                 {
                     av_opt_set_int(resampleContext, "internal_sample_fmt", AV_SAMPLE_FMT_S16P, 0);
                 }
@@ -262,16 +262,16 @@ uint8_t * LAV_SourcePrivate::decodeOneFrame(int &dataSize, int &channels, int& n
                 int outLinesize;
                 int maxOutSamples = outBufferSize / channels / outSampleSize;
                 av_samples_get_buffer_size(&outLinesize,
-                                            channels,
-                                            decodedFrame->nb_samples,
-                                            outSampleFmt, 0);
+                                           channels,
+                                           decodedFrame->nb_samples,
+                                           outSampleFmt, 0);
                 int nSamplesOut = avresample_convert(resampleContext,
-                                            &outBuffer,
-                                            outLinesize,
-                                            maxOutSamples,
-                                            decodedFrame->extended_data,
-                                            decodedFrame->linesize[0],
-                                            decodedFrame->nb_samples);
+                                                     &outBuffer,
+                                                     outLinesize,
+                                                     maxOutSamples,
+                                                     decodedFrame->extended_data,
+                                                     decodedFrame->linesize[0],
+                                                     decodedFrame->nb_samples);
                 if (nSamplesOut < 0)
                 {
                     cerr << "avresample_convert failed" << endl;
@@ -382,8 +382,8 @@ void LAV_Source::init(const QString& fileName)
 
 #if !defined(HAVE_SWRESAMPLE) && !defined(HAVE_AVRESAMPLE)
     if (d->inCodecContext->sample_fmt != outSampleFmt
-        || d->inCodecContext->channels < 1
-        || d->inCodecContext->channels > 2)
+            || d->inCodecContext->channels < 1
+            || d->inCodecContext->channels > 2)
     {
         release();
         throw std::runtime_error ("The file has an incompatible sample format!");
@@ -450,14 +450,14 @@ void LAV_Source::skipSilence(double silenceThreshold /* = 0.0001 */)
         int16_t *buf = (int16_t*)out;
         switch ( channels )
         {
-            case 1:
-                for (int j = 0; j < nSamples; j++)
-                    sum += abs( buf[j] );
-                break;
-            case 2:
-                for (int j = 0; j < nSamples; j+=2)
-                    sum += abs( (buf[j] >> 1) + (buf[j+1] >> 1) );
-                break;
+        case 1:
+            for (int j = 0; j < nSamples; j++)
+                sum += abs( buf[j] );
+            break;
+        case 2:
+            for (int j = 0; j < nSamples; j+=2)
+                sum += abs( (buf[j] >> 1) + (buf[j+1] >> 1) );
+            break;
         }
         if ( sum >= silenceThreshold * static_cast<double>(nSamples) )
         {
@@ -478,7 +478,7 @@ void LAV_Source::skip(const int mSecs)
     {
         d->decodeOneFrame(dataSize, channels, nSamples);
         if ( d->timestamp > targetTimestamp || d->eof )
-           return;
+            return;
     }
 }
 

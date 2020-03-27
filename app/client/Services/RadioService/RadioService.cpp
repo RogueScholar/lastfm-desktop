@@ -1,5 +1,5 @@
 /*
-   Copyright 2005-2009 Last.fm Ltd. 
+   Copyright 2005-2009 Last.fm Ltd.
       - Primarily authored by Max Howell, Jono Cole and Doug Mansell
 
    This file is part of the Last.fm Desktop Application Suite.
@@ -34,11 +34,11 @@
 #include "RadioService.h"
 
 RadioService::RadioService()
-     : m_audioOutput( 0 ),
-       m_mediaObject( 0 ),
-       m_state( Stopped ),
-       m_bErrorRecover( false ),
-       m_maxUsageCount( 180 )
+    : m_audioOutput( 0 ),
+      m_mediaObject( 0 ),
+      m_state( Stopped ),
+      m_bErrorRecover( false ),
+      m_maxUsageCount( 180 )
 {
     initRadio();
 
@@ -76,7 +76,7 @@ RadioService::onLastFmUrl( const QUrl& url )
 // then we *don't* retune.  norman is quite emphatic about this.  :)
 void
 RadioService::play( const RadioStation& station )
-{  
+{
     if ( !aApp->currentSession().youRadio() )
     {
         // they are not a subscriber so don't let them start the radio
@@ -176,7 +176,7 @@ RadioService::playNext( const RadioStation& station )
 
 void
 RadioService::enqueue()
-{  
+{
     qDebug() << "enqueue";
     if (m_state == Stopped) {
         // this should be impossible. If we are stopped, then the GUI looks
@@ -185,7 +185,7 @@ RadioService::enqueue()
         Q_ASSERT( 0 );
         return;
     }
-	
+
     phononEnqueue();
 }
 
@@ -194,11 +194,11 @@ RadioService::skip()
 {
     if (!m_mediaObject)
         return;
-    
+
     // attempt to refill the phonon queue if it's empty
     if (m_mediaObject->queue().isEmpty())
         phononEnqueue();
-    
+
     QList<Phonon::MediaSource> q = m_mediaObject->queue();
 
     if ( q.size() )
@@ -241,7 +241,7 @@ void
 RadioService::stop()
 {
     delete m_tuner;
-    
+
     m_mediaObject->blockSignals( true ); //prevent the error state due to setting current source to null
     m_mediaObject->stop();
     m_mediaObject->clearQueue();
@@ -249,7 +249,7 @@ RadioService::stop()
     m_mediaObject->blockSignals( false );
 
     clear();
-    
+
     changeState( Stopped );
 }
 
@@ -315,43 +315,43 @@ RadioService::onPhononStateChanged( Phonon::State newstate, Phonon::State oldsta
 
     switch (newstate)
     {
-        case Phonon::ErrorState:
-            qWarning() << m_mediaObject->errorType() << m_mediaObject->errorString();
-            emit error( lastfm::ws::UnknownError, QVariant( m_mediaObject->errorString() ));
-            deInitRadio();
-            changeState( Stopped );
-            break;
-			
-        case Phonon::PausedState:
-            // if the play queue runs out we get this for some reason
-            // this means we are fetching new tracks still, we should show a
-            // tuning in state;
-            if (m_mediaObject->queue().size() == 0)
-            {
-                qDebug() << "queue empty, going to TuningIn";
-                changeState( Paused );
-            }
-            break;
-			
-        case Phonon::StoppedState:
-            if (m_bErrorRecover)
-            {
-                m_bErrorRecover = false;
-                skip();
-            }
-            break;
-			
-        case Phonon::BufferingState:
-            changeState( Buffering );
-            restoreVolume();
-            break;
+    case Phonon::ErrorState:
+        qWarning() << m_mediaObject->errorType() << m_mediaObject->errorString();
+        emit error( lastfm::ws::UnknownError, QVariant( m_mediaObject->errorString() ));
+        deInitRadio();
+        changeState( Stopped );
+        break;
 
-        case Phonon::PlayingState:
-            changeState( Playing );
-            break;
+    case Phonon::PausedState:
+        // if the play queue runs out we get this for some reason
+        // this means we are fetching new tracks still, we should show a
+        // tuning in state;
+        if (m_mediaObject->queue().size() == 0)
+        {
+            qDebug() << "queue empty, going to TuningIn";
+            changeState( Paused );
+        }
+        break;
 
-        case Phonon::LoadingState:
-            break;
+    case Phonon::StoppedState:
+        if (m_bErrorRecover)
+        {
+            m_bErrorRecover = false;
+            skip();
+        }
+        break;
+
+    case Phonon::BufferingState:
+        changeState( Buffering );
+        restoreVolume();
+        break;
+
+    case Phonon::PlayingState:
+        changeState( Playing );
+        break;
+
+    case Phonon::LoadingState:
+        break;
     }
 }
 
@@ -387,7 +387,7 @@ RadioService::phononEnqueue()
     // Loop until we get a null url or a valid url.
     forever
     {
-        // consume next track from the track source. a null track 
+        // consume next track from the track source. a null track
         // response means wait until the trackAvailable signal
         Track t = m_tuner->takeNextTrack();
 
@@ -402,7 +402,7 @@ RadioService::phononEnqueue()
         // state changes, so we must filter them.
         if (!t.url().isValid())
             continue;
-        
+
         m_track = t;
         Phonon::MediaSource ms( t.url() );
 
@@ -449,16 +449,16 @@ RadioService::changeState( State const newstate )
 {
     State const oldstate = m_state;
 
-    if (oldstate == newstate) 
+    if (oldstate == newstate)
         return;
 
     qDebug().nospace() << newstate << " (was " << oldstate << ')';
-     
+
     m_state = newstate; // always assign state properties before you tell other
-                        // objects about it
-    
+    // objects about it
+
     switch (newstate)
-	{
+    {
     case TuningIn:
         qDebug() << "Tuning to:" << m_station;
         emit tuningIn( m_station );
@@ -478,7 +478,7 @@ RadioService::changeState( State const newstate )
     case Paused:
         emit paused();
         break;
-	}
+    }
 }
 
 void
@@ -538,7 +538,7 @@ RadioService::onFinished()
 
 
 // returns true on successful initialisation
-bool 
+bool
 RadioService::initRadio()
 {
     qDebug() << "initRadio";
@@ -548,9 +548,9 @@ RadioService::initRadio()
     qDebug() << audioOutput->outputDevice().description();
     qDebug() << audioOutput->outputDevice().name();
     qDebug() << (audioOutput->isMuted() ? "muted,": "not-muted,") <<
-                (audioOutput->isValid() ? "valid,": "not-valid,") <<
-                audioOutput->volumeDecibel() << "db " <<
-                audioOutput->volume();
+             (audioOutput->isValid() ? "valid,": "not-valid,") <<
+             audioOutput->volumeDecibel() << "db " <<
+             audioOutput->volume();
     foreach (QByteArray a, audioOutput->outputDevice().propertyNames()) {
         qDebug() << a << ":" << audioOutput->outputDevice().property(a);
     }
@@ -574,7 +574,7 @@ RadioService::initRadio()
 //        mediaObject->deleteLater();
         audioOutput->deleteLater();
         return false;
-    } 
+    }
 
     mediaObject->setTickInterval( 500 );
     connect( mediaObject, SIGNAL(stateChanged( Phonon::State, Phonon::State )), SLOT(onPhononStateChanged( Phonon::State, Phonon::State )) );
@@ -601,7 +601,7 @@ RadioService::deInitRadio()
     qDebug() << "deInitRadio";
     // try to deleteLater and phonon crashes. poo.
     // leak em...  :(
-    
+
     m_audioOutput->deleteLater();
     m_audioOutput = 0;
     m_mediaObject->deleteLater();
