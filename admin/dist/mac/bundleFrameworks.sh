@@ -54,7 +54,6 @@ function fixFrameworks {
         if [ ! -e "$bundlePath/Contents/Frameworks/$frameworkName" ]; then 
             #cp -Rf -P /opt/qt/qt.git/lib/QtXml.framework (app name.app)/Contents/Frameworks
             cp -R -H -f $framework "$bundlePath/Contents/Frameworks"
-
             chmod -R u+w "$bundlePath/Contents/Frameworks"
 
             #install_name_tool -id /opt/qt/qt.git/lib/QtXml.framework/Contents/QtXml
@@ -155,57 +154,25 @@ echo
 echo ======= Copying Qt plugins ===========
 mkdir -p "$bundlePath/Contents/plugins"
 
-plugins="imageformats phonon_backend sqldrivers bearer"
+plugins="imageformats sqldrivers bearer"
 
 for plugin in $plugins; do
     if [ -d /Developer/Applications/Qt/plugins/ ]; then
         pluginDir=/Developer/Applications/Qt/plugins
+    elif [ -d /usr/local/lib/qt4/plugins/ ]; then
+        # Qt installed using Homebrew will be found in your local lib.
+        # Currently we only support qt v4.8.7.
+        pluginDir=/usr/local/lib/qt4/plugins
     else
         pluginDir=`qmake --version |sed -n 's/^.*in \(\/.*$\)/\1/p'`/../plugins
     fi
-    cp -R -H -f $pluginDir/$plugin "$bundlePath/Contents/plugins"
+    cp -v -R -L -f $pluginDir/$plugin "$bundlePath/Contents/plugins"
+    chmod -R -v u+w "$bundlePath/Contents/plugins"
     for i in "$bundlePath"/Contents/plugins/$plugin/*; do
         fixFrameworks "$i"
         fixLocalLibs "$i"
         echo -n P
     done
-    echo
-done
-
-echo ======= Copying vlc plugins ===========
-
-mkdir -p "$bundlePath/Contents/plugins"
-
-vlcPlugins='libaccess_http_plugin.dylib
-            liba52tofloat32_plugin.dylib
-            liba52tospdif_plugin.dylib
-            libaudio_format_plugin.dylib
-            libconverter_fixed_plugin.dylib
-            libdolby_surround_decoder_plugin.dylib
-            libdtstofloat32_plugin.dylib
-            libdtstospdif_plugin.dylib
-            libmpgatofixed32_plugin.dylib
-            libscaletempo_plugin.dylib
-            libsimple_channel_mixer_plugin.dylib
-            libspeex_resampler_plugin.dylib
-            libtrivial_channel_mixer_plugin.dylib
-            libauhal_plugin.dylib
-            libugly_resampler_plugin.dylib
-            libfloat32_mixer_plugin.dylib
-            libmpeg_audio_plugin.dylib
-            libes_plugin.dylib
-            liblogger_plugin.dylib'
-
-
-for plugin in $vlcPlugins; do
-    pluginDir="/usr/local/lib/vlc/plugins"
-
-    mkdir -p "$bundlePath/Contents/plugins"
-    cp -R -H -f $pluginDir/$plugin "$bundlePath/Contents/plugins"
-    chmod -R u+w "$bundlePath/Contents/plugins"
-    
-    fixFrameworks "$bundlePath/Contents/plugins/$plugin"
-    fixLocalLibs "$bundlePath/Contents/plugins/$plugin"
     echo
 done
 
@@ -215,23 +182,25 @@ mkdir -p "$bundlePath/Contents/Resources/qm"
 translations="qt_de.qm
                 qt_es.qm 
                 qt_fr.qm 
-                qt_it.qm 
                 qt_ja.qm 
                 qt_pl.qm 
                 qt_pt.qm 
                 qt_ru.qm 
                 qt_sv.qm 
-                qt_tr.qm
                 qt_zh_CN.qm"
 
 for translation in $translations; do
     if [ -d /Developer/Applications/Qt/plugins/ ]; then
         translationDir=/Developer/Applications/Qt/translations
+    elif [ -d /usr/local/Cellar/qt@4/4.8.7_5/translations/ ]; then
+        # Qt installed using Homebrew will be found in the Homebrew Cellar.
+        # Currently we only support qt v4.8.7.
+        translationDir=/usr/local/Cellar/qt@4/4.8.7_5/translations
     else
         translationDir=`qmake --version |sed -n 's/^.*in \(\/.*$\)/\1/p'`/../translations
     fi
 
-    cp -f $translationDir/$translation "$bundlePath/Contents/Resources/qm"
+    cp -v -f $translationDir/$translation "$bundlePath/Contents/Resources/qm"
     echo
 done
 
@@ -240,7 +209,3 @@ echo ======= creating qt.conf ===========
 qtconf=$bundlePath/Contents/Resources/qt.conf
 echo [Paths] > "$qtconf"
 echo Plugins = ../plugins >> "$qtconf"
-
-
-echo ======= signing bundle ===========
-codesign -f -s "Developer ID Application: Last.fm" -i fm.last.Scrobbler "$bundlePath"

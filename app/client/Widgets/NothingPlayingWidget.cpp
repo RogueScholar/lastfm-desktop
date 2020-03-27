@@ -25,13 +25,16 @@
 
 #include "../Application.h"
 
-#include "QuickStartWidget.h"
-
 #include "lib/unicorn/widgets/Label.h"
 
 #ifdef Q_OS_WIN
 #include "lib/unicorn/plugins/IPluginInfo.h"
 #include "lib/unicorn/plugins/PluginList.h"
+#endif
+
+#ifdef Q_OS_MAC
+// the iTunes listener has a static method we can use to tell if iTunes is installed
+#include "lib/listener/mac/ITunesListener.h"
 #endif
 
 #include "NothingPlayingWidget.h"
@@ -54,19 +57,33 @@ NothingPlayingWidget::NothingPlayingWidget( QWidget* parent )
                                "<p>Start listening to some music in your media player. You can see more information about the tracks you play on the Now Playing tab.</p>") );
 
     ui->itunes->hide();
+    ui->applemusic->hide();
     ui->wmp->hide();
     ui->winamp->hide();
     ui->foobar->hide();
 
-#if defined( Q_OS_WIN ) || defined( Q_OS_MAC )
-    ui->itunes->setVisible( true ); // always show iTunes on Mac
+#if defined( Q_OS_MAC ) 
+    QString MusicOrItunesId = ITunesListener::getPlayerAppId();
+
+    ui->applemusic->setVisible( MusicOrItunesId.compare("com.apple.Music") == 0 );
+    ui->applemusic->setAttribute( Qt::WA_LayoutUsesWidgetRect );
+
+    connect( ui->applemusic, SIGNAL(clicked()), SLOT(onAppleMusicClicked()));    
+
+    ui->itunes->setVisible( MusicOrItunesId.compare("com.apple.iTunes") == 0 );
+    ui->itunes->setAttribute( Qt::WA_LayoutUsesWidgetRect );
+
+    connect( ui->itunes, SIGNAL(clicked()), SLOT(oniTunesClicked()));
+#endif
+
+#if defined( Q_OS_WIN )
+    unicorn::PluginList pluginList;
+
+    ui->itunes->setVisible( pluginList.pluginById( "itw" )->isAppInstalled() );
     ui->itunes->setAttribute( Qt::WA_LayoutUsesWidgetRect );
 
     connect( ui->itunes, SIGNAL(clicked()), SLOT(oniTunesClicked()));
 
-#ifndef Q_OS_MAC
-    unicorn::PluginList pluginList;
-    ui->itunes->setVisible( pluginList.pluginById( "itw" )->isAppInstalled() );
     ui->wmp->setVisible( pluginList.pluginById( "wmp" )->isAppInstalled() );
     ui->wmp->setAttribute( Qt::WA_LayoutUsesWidgetRect );
     ui->winamp->setVisible( pluginList.pluginById( "wa2" )->isAppInstalled() );
@@ -78,7 +95,6 @@ NothingPlayingWidget::NothingPlayingWidget( QWidget* parent )
     connect( ui->winamp, SIGNAL(clicked()), SLOT(onWinampClicked()));
     connect( ui->foobar, SIGNAL(clicked()), SLOT(onFoobarClicked()));
 #endif
-#endif
 
     connect( aApp, SIGNAL(sessionChanged(unicorn::Session)), SLOT(onSessionChanged(unicorn::Session)) );
 }
@@ -88,15 +104,6 @@ NothingPlayingWidget::onSessionChanged( const unicorn::Session& session )
 {
     if ( !session.user().name().isEmpty() )
         ui->top->setText( tr(  "Hello, %1!" ).arg( session.user().name() ) );
-
-    // leave them in their current state until the sessioninfo is valid
-    // this stops them getting hidden and shown again when adding a new subscriber
-    if ( session.isValid() )
-    {
-        ui->splitter->setVisible( session.youRadio() );
-        ui->quickStart->setVisible( session.youRadio() );
-        ui->start->setVisible( session.youRadio() );
-    }
 }
 
 #ifdef Q_OS_WIN
@@ -119,6 +126,12 @@ void
 NothingPlayingWidget::oniTunesClicked()
 {
     startApp( "/iTunes/iTunes.exe" );
+}
+
+void
+NothingPlayingWidget::onAppleMusicClicked()
+{
+    // doesn't yet exist on Windows
 }
 
 void

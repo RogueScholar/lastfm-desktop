@@ -23,6 +23,10 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
+#ifndef AVCODEC_MAX_AUDIO_FRAME_SIZE
+#define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000
+#endif
+
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/mathematics.h>
@@ -41,6 +45,11 @@ extern "C" {
 #include <stdexcept>
 
 #include <QFile>
+
+/*
+ defining the constant here to avoid using deprecated AVCODEC_MAX_AUDIO_FRAME_SIZE
+*/
+#define MAX_AUDIO_FRAME_SIZE 192000
 
 using namespace std;
 
